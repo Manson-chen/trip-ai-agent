@@ -1,10 +1,18 @@
 spring:
   application:
     name: trip-ai-agent
+  ai:
+    dashscope:
+      api-key: "sk-04a4f8f9e8f44812af9ac789e610081c"
+      chat:
+        options:
+          model: qwen-plus
+
 server:
   port: 8123
   servlet:
     context-path: /api
+
 # springdoc-openapi
 springdoc:
   swagger-ui:
