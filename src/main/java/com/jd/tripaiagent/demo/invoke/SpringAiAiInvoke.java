@@ -7,8 +7,13 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+
+/**
+ * Spring AI 框架调用 AI 大模型
+ */
 // 取消注释即可在 SpringBoot 项目启动时执行
 //@Component
+// CommandLineRunner：实现了这个接口就能在启动时调用一次 run 方法
 public class SpringAiAiInvoke implements CommandLineRunner {
 
     @Resource

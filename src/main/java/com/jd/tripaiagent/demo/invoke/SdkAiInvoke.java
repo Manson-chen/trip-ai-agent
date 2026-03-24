@@ -25,6 +25,9 @@ import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.exception.UploadFileException;
 import com.alibaba.dashscope.utils.Constants;
 
+/**
+ * 阿里云灵积调用 SDK
+ */
 public class SdkAiInvoke {
 
     static {

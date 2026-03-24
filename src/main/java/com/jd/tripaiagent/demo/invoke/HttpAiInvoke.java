@@ -7,6 +7,9 @@ import cn.hutool.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Http 方式调用大模型
+ */
 public class HttpAiInvoke {
     public static void main(String[] args) {
 
