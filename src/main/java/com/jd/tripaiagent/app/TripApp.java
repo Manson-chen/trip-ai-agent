@@ -3,13 +3,16 @@ package com.jd.tripaiagent.app;
 import com.jd.tripaiagent.advisor.MyLoggerAdvisor;
 import com.jd.tripaiagent.advisor.ReReadingAdvisor;
 import com.jd.tripaiagent.chatmemory.FileBasedChatMemory;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,19 +27,33 @@ public class TripApp {
 
     private static final String SYSTEM_PROMPT = "你是一个旅游专家";
 
+    @Resource
+    private VectorStore tripAppVectorStore;
+
     public TripApp(ChatModel dashscopeChatModel) {
         // 初始化基于内存的对话记忆
 //        ChatMemory chatMemory = new InMemoryChatMemory();
         // 初始化基于文件的对话记忆
         String fileDir = System.getProperty("user.dir") + "/chat-memory";
         ChatMemory chatMemory = new FileBasedChatMemory(fileDir);
+//         修改2：使用MessageWindowChatMemory替代InMemoryChatMemory
+//        ChatMemory chatMemory = MessageWindowChatMemory.builder()
+//                .maxMessages(20)  // 设置最大消息数量
+//                .build();
+//        // 修改3：使用Builder模式创建MessageChatMemoryAdvisor
+//        this.chatClient = ChatClient.builder(dashscopeChatModel)
+//                .defaultSystem(SYSTEM_PROMPT)
+//                .defaultAdvisors(
+//                        MessageChatMemoryAdvisor.builder(chatMemory).build()
+//                )
+//                .build();
         chatClient = ChatClient.builder(dashscopeChatModel)
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(chatMemory),
+                        new MessageChatMemoryAdvisor(chatMemory)
                         // 自定义日志 Advisor，可按需开启
-                        new MyLoggerAdvisor(),
-                        new ReReadingAdvisor()
+//                        new MyLoggerAdvisor(),
+//                        new ReReadingAdvisor()
                 )
                 .build();
     }
@@ -70,5 +87,21 @@ public class TripApp {
                 .entity(TripReport.class);
         log.info("tripReport: {}", tripReport);
         return tripReport;
+    }
+
+    public String doChatWithRag(String message, String chatId) {
+        ChatResponse chatResponse = chatClient.prompt()
+                .user(message)
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                // 开启日志，便于观察结果
+                .advisors(new MyLoggerAdvisor())
+                // 应用知识库问答
+                .advisors(new QuestionAnswerAdvisor(tripAppVectorStore))
+                .call()
+                .chatResponse();
+        String content = chatResponse.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
     }
 }
