@@ -41,7 +41,7 @@ public class TripAppDocumentLoader {
                         .build();
                 // 创建读取器并解析 Markdown 文件，将结果添加到文档集合
                 MarkdownDocumentReader reader = new MarkdownDocumentReader(resource, config);
-                allDocuments.addAll(reader.read());
+                allDocuments.addAll(reader.read()); // reader.get()
 
             }
         } catch (IOException e) {
